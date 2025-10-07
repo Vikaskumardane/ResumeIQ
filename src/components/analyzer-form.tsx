@@ -39,9 +39,8 @@ export function AnalyzerForm() {
     e.preventDefault()
     const validation = analyzeFormSchema.safeParse({ resumeFile: file, jobDescription })
     if (!validation.success) {
-      const message = validation.error.errors.map((e) => e.message).join('; ')
+      const message = validation.error.issues.map((e) => e.message).join('; ')
       mutation.reset()
-      mutation.mutateAsync.cancel?.()
       // Surface a readable error via thrown rejection
       mutation.mutateAsync({} as any).catch(() => {})
       alert(message)

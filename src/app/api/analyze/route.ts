@@ -1,14 +1,17 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ParsingError, ValidationError, AiError, AuthError } from '@/src/lib/errors'
+import { ParsingError, ValidationError } from '@/src/lib/errors'
 import { getOpenAI } from '@/src/lib/ai'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const formSchema = z.object({
-  resumeFile: z.instanceof(Blob),
+  resumeFile: z.custom((file) => file instanceof File || file instanceof Blob, {
+  message: "Invalid file type"
+})
+,
   jobDescription: z.string().min(20),
 })
 
@@ -17,8 +20,10 @@ async function readFileToText(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
   if (type === 'application/pdf') {
     try {
-      const { default: pdfParse } = await import('pdf-parse')
-      const result = await pdfParse(buffer)
+   const pdfParseModule = await import('pdf-parse')
+  // Try accessing the actual function - it might be a named export
+  const pdfParse = (pdfParseModule as any).default || (pdfParseModule as any) || pdfParseModule
+  const result = await pdfParse(buffer)
       if (!result.text?.trim()) throw new ParsingError('Empty PDF text')
       return result.text
     } catch (e) {
