@@ -23,7 +23,9 @@ export default function RootLayout({ children }) {
       <ClerkProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          {children}
+          <QueryProvider>
+  {children} 
+</QueryProvider>
         </body>
       </html>
     </ClerkProvider>

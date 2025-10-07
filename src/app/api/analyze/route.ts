@@ -52,7 +52,15 @@ export async function POST(req: NextRequest) {
 //   if (!userId) {
 //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 //   }
-
+try {
+    // Check if the request has the correct content type
+    const contentType = req.headers.get('content-type')
+    if (!contentType || !contentType.includes('multipart/form-data')) {
+      return NextResponse.json(
+        { error: 'Content type must be multipart/form-data' },
+        { status: 400 }
+      )
+    }
   const formData = await req.formData()
   const resumeFile = formData.get('resumeFile')
   const jobDescription = formData.get('jobDescription')
@@ -123,6 +131,13 @@ Provide a "Fit Score" from 1-10 and a 2-3 sentence summary explaining the score 
     return NextResponse.json({ analysis: content })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'AI request failed' }, { status: 502 })
+  }
+}  catch (error) {
+    console.error('Error processing request:', error)
+    return NextResponse.json(
+      { error: 'Failed to process request' },
+      { status: 500 }
+    )
   }
 }
 
